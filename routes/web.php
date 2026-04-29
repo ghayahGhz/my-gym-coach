@@ -52,10 +52,11 @@ Route::middleware(\App\Http\Middleware\HasProfile::class)->group(function () {
 
     Route::post('/calendar/toggle', [CalendarController::class, 'toggleDate'])->name('calendar.toggle');
 
-    Route::post('/exercises',              [HomeController::class, 'addExercise'])->name('exercises.add');
-    Route::delete('/exercises/{id}',       [HomeController::class, 'removeExercise'])->name('exercises.remove');
-    Route::patch('/exercises/{id}/toggle', [HomeController::class, 'toggleDone'])->name('exercises.toggle');
-    Route::patch('/exercises/{id}/adjust', [HomeController::class, 'adjustField'])->name('exercises.adjust');
-    Route::post('/exercises/reset-day',    [HomeController::class, 'resetDay'])->name('exercises.reset-day');
-    Route::post('/exercises/plan',         [HomeController::class, 'generatePlan'])->name('exercises.plan');
+    // Literal paths first, then wildcard paths
+    Route::post('/exercises',                  [HomeController::class, 'addExercise'])->name('exercises.add');
+    Route::post('/exercises/reset-day',        [HomeController::class, 'resetDay'])->name('exercises.reset-day');
+    Route::post('/exercises/plan',             [HomeController::class, 'generatePlan'])->name('exercises.plan');
+    Route::post('/exercises/{id}/remove',      [HomeController::class, 'removeExercise'])->name('exercises.remove');
+    Route::post('/exercises/{id}/toggle',      [HomeController::class, 'toggleDone'])->name('exercises.toggle');
+    Route::post('/exercises/{id}/adjust',      [HomeController::class, 'adjustField'])->name('exercises.adjust');
 });

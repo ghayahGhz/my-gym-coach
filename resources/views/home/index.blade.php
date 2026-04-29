@@ -465,7 +465,7 @@ function resetDay() {
 // ─── Exercise AJAX ───────────────────────────────────────────────────────────
 function adjust(id, field, delta) {
     fetch(`/exercises/${id}/adjust`, {
-        method: 'PATCH',
+        method: 'POST',
         headers: {'Content-Type':'application/json','X-CSRF-TOKEN':CSRF},
         body: JSON.stringify({field, delta})
     }).then(r => r.json()).then(d => {
@@ -475,7 +475,7 @@ function adjust(id, field, delta) {
 
 function toggleDone(id) {
     fetch(`/exercises/${id}/toggle`, {
-        method: 'PATCH',
+        method: 'POST',
         headers: {'Content-Type':'application/json','X-CSRF-TOKEN':CSRF}
     }).then(r => r.json()).then(d => {
         const card = document.getElementById(`ex-${id}`);
@@ -491,36 +491,31 @@ function toggleDone(id) {
             btn.style.background  = 'transparent';
             btn.style.color       = 'var(--muted)';
         }
-        if (d.allDone) {
-            const banner = document.getElementById('all-done-banner');
-            if (banner) banner.style.display = 'flex';
-        } else {
-            const banner = document.getElementById('all-done-banner');
-            if (banner) banner.style.display = 'none';
-        }
+        const banner = document.getElementById('all-done-banner');
+        if (banner) banner.style.display = d.allDone ? 'flex' : 'none';
     });
 }
 
 function removeExercise(id) {
     if (!confirm('حذف هذا التمرين؟')) return;
-    fetch(`/exercises/${id}`, {
-        method: 'DELETE',
+    fetch(`/exercises/${id}/remove`, {
+        method: 'POST',
         headers: {'Content-Type':'application/json','X-CSRF-TOKEN':CSRF}
     })
     .then(r => {
-        if (!r.ok) throw new Error('فشل الحذف');
+        if (!r.ok) throw new Error(r.status);
         return r.json();
     })
     .then(d => {
         if (d.success) {
             const el = document.getElementById(`ex-${id}`);
-            el.style.opacity   = '0';
-            el.style.transform = 'translateX(40px)';
+            el.style.opacity    = '0';
+            el.style.transform  = 'translateX(40px)';
             el.style.transition = 'all .3s';
             setTimeout(() => { el.remove(); checkAllDone(); }, 300);
         }
     })
-    .catch(() => alert('حدث خطأ، يرجى المحاولة مجدداً'));
+    .catch(e => alert('خطأ في الحذف: ' + e.message));
 }
 
 function addExercise(exerciseId) {
