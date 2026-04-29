@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global resets & base */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { -webkit-font-smoothing: antialiased; }
+select { background: #1A1A1A; color: #EEEAFF; }
+a { color: inherit; }
+
+/* Hide scrollbar but allow scroll */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Mobile safe area */
+@supports (padding: env(safe-area-inset-bottom)) {
+    #bottom-nav { padding-bottom: env(safe-area-inset-bottom); }
+}
