@@ -18,7 +18,16 @@ class HomeController extends Controller
 
     public function index(Request $request)
     {
-        $profile   = $this->profile();
+        $profile = $this->profile();
+
+        // Auto-reset: reset all "done" flags at the start of a new day
+        $today = now()->toDateString();
+        if ($profile->done_reset_at !== $today) {
+            $profile->userExercises()->update(['done' => false]);
+            $profile->done_reset_at = $today;
+            $profile->save();
+        }
+
         $days      = $profile->days ?? ['sat'];
         $activeDay = $request->query('day', $days[0] ?? 'sat');
 
@@ -26,7 +35,6 @@ class HomeController extends Controller
         $library    = Exercise::orderBy('muscle')->orderBy('name')->get()->groupBy('muscle');
         $allMuscles = Exercise::distinct()->pluck('muscle_ar', 'muscle');
 
-        // Weekly challenge: count done sessions this week (Sat–Fri)
         $weekStart    = Carbon::now()->startOfWeek(Carbon::SATURDAY);
         $weekEnd      = $weekStart->copy()->addDays(6)->endOfDay();
         $weekSessions = $profile->doneDates()
@@ -34,7 +42,6 @@ class HomeController extends Controller
             ->count();
         $weekTarget   = count($days);
 
-        // Motivational quotes (rotate daily)
         $quotes = [
             ['ar' => 'كل تكرار يقربك من النسخة التي تريدها.', 'sub' => 'أنت أقوى مما تعتقد!'],
             ['ar' => 'الاستمرارية هي سر التغيير الحقيقي.', 'sub' => 'لا تتوقف حتى تفتخر بنفسك!'],
@@ -46,7 +53,6 @@ class HomeController extends Controller
         ];
         $quote = $quotes[now()->dayOfYear % count($quotes)];
 
-        // Stats
         $todayDone  = $profile->doneCountForDay($activeDay);
         $todayTotal = $profile->userExercises()->where('day', $activeDay)->count();
         $streak     = $profile->streak();
@@ -88,6 +94,7 @@ class HomeController extends Controller
             'exercise_id' => $ex->id,
             'name'        => $ex->exercise->name,
             'muscle_ar'   => $ex->exercise->muscle_ar,
+            'youtube_url' => $ex->exercise->youtube_url,
             'is_time'     => $ex->exercise->is_time,
             'sets'        => $ex->sets,
             'reps'        => $ex->reps,
@@ -112,7 +119,15 @@ class HomeController extends Controller
             ->firstOrFail();
         $ue->done = ! $ue->done;
         $ue->save();
-        return response()->json(['done' => $ue->done]);
+
+        $profile = $this->profile();
+        $total   = $profile->userExercises()->where('day', $ue->day)->count();
+        $done    = $profile->userExercises()->where('day', $ue->day)->where('done', true)->count();
+
+        return response()->json([
+            'done'    => $ue->done,
+            'allDone' => $total > 0 && $done === $total,
+        ]);
     }
 
     public function adjustField(Request $request, int $id)
@@ -133,5 +148,125 @@ class HomeController extends Controller
         };
 
         return response()->json(['value' => $ue->{$request->field}]);
+    }
+
+    public function resetDay(Request $request)
+    {
+        $request->validate(['day' => 'required|in:sat,sun,mon,tue,wed,thu,fri']);
+        $this->profile()->userExercises()->where('day', $request->day)->update(['done' => false]);
+        return response()->json(['success' => true]);
+    }
+
+    public function generatePlan(Request $request)
+    {
+        $request->validate([
+            'goal'      => 'required|in:muscle,fat,strength,fitness',
+            'level'     => 'required|in:beginner,intermediate,advanced',
+            'equipment' => 'required|in:home,gym',
+            'system'    => 'nullable|in:ppl,bro,ul,hybrid',
+        ]);
+
+        $profile  = $this->profile();
+        $days     = $profile->days ?? ['sat'];
+        $dayCount = count($days);
+
+        $pools = [
+            'gym' => [
+                'push'     => ['bp', 'df', 'cf', 'sp', 'lr'],
+                'pull'     => ['lp', 'crw', 'dl', 'puu'],
+                'legs'     => ['sq', 'lpr', 'ht', 'lu', 'rdl', 'cal'],
+                'chest'    => ['bp', 'df', 'pu', 'cf'],
+                'back'     => ['lp', 'crw', 'dl', 'puu'],
+                'shoulder' => ['sp', 'lr', 'fr'],
+                'abs'      => ['cru', 'pl', 'rt', 'hlr', 'bc'],
+                'upper'    => ['bp', 'lp', 'sp', 'lr', 'crw', 'df'],
+                'lower'    => ['sq', 'lpr', 'ht', 'lu', 'rdl'],
+                'cardio'   => ['tm', 'bh', 'scc', 'el'],
+            ],
+            'home' => [
+                'push'     => ['pu', 'fr', 'lr'],
+                'pull'     => ['puu'],
+                'legs'     => ['sq', 'lu', 'ht', 'rdl', 'cal'],
+                'chest'    => ['pu'],
+                'back'     => ['puu'],
+                'shoulder' => ['fr', 'lr'],
+                'abs'      => ['cru', 'pl', 'rt', 'hlr', 'bc'],
+                'upper'    => ['pu', 'puu', 'fr', 'lr', 'cru'],
+                'lower'    => ['sq', 'lu', 'ht', 'rdl'],
+                'cardio'   => ['ks'],
+            ],
+        ];
+
+        $pool = $pools[$request->equipment];
+
+        $patterns = [
+            'ppl'    => ['push', 'pull', 'legs', 'push', 'pull', 'legs'],
+            'bro'    => ['chest', 'back', 'legs', 'shoulder', 'abs'],
+            'ul'     => ['upper', 'lower', 'upper', 'lower'],
+            'hybrid' => ['push', 'pull', 'legs', 'upper', 'lower'],
+        ];
+
+        if ($request->system && isset($patterns[$request->system])) {
+            $pattern = $patterns[$request->system];
+        } else {
+            $autoPatterns = [
+                1 => ['upper'],
+                2 => ['upper', 'lower'],
+                3 => ['push', 'pull', 'legs'],
+                4 => ['upper', 'lower', 'upper', 'lower'],
+                5 => ['chest', 'back', 'legs', 'shoulder', 'abs'],
+                6 => ['push', 'pull', 'legs', 'push', 'pull', 'legs'],
+                7 => ['push', 'pull', 'legs', 'upper', 'lower', 'abs', 'legs'],
+            ];
+            $pattern = $autoPatterns[min(7, max(1, $dayCount))];
+        }
+
+        $levelCfg = [
+            'beginner'     => [3, 3, 10],
+            'intermediate' => [4, 4, 10],
+            'advanced'     => [5, 5, 12],
+        ];
+        [$exCount, $sets, $reps] = $levelCfg[$request->level];
+
+        if ($request->goal === 'strength') {
+            $sets += 1;
+            $reps  = max(5, $reps - 5);
+        }
+
+        $library = Exercise::all()->keyBy('key');
+
+        // Clear existing exercises for all days
+        $profile->userExercises()->delete();
+
+        foreach ($days as $index => $day) {
+            $group  = $pattern[$index % count($pattern)];
+            $keys   = $pool[$group] ?? $pool['upper'];
+            $picked = array_slice($keys, 0, $exCount);
+
+            if (in_array($request->goal, ['fat', 'fitness'])) {
+                $cardioKeys = $pool['cardio'];
+                $cardioKey  = $cardioKeys[$index % count($cardioKeys)];
+                if (! in_array($cardioKey, $picked)) {
+                    $picked[] = $cardioKey;
+                }
+            }
+
+            $order = 1;
+            foreach ($picked as $key) {
+                if (! isset($library[$key])) continue;
+                UserExercise::create([
+                    'user_profile_id' => $profile->id,
+                    'exercise_id'     => $library[$key]->id,
+                    'day'             => $day,
+                    'sets'            => $sets,
+                    'reps'            => $reps,
+                    'weight'          => 0,
+                    'done'            => false,
+                    'sort_order'      => $order++,
+                ]);
+            }
+        }
+
+        return response()->json(['success' => true]);
     }
 }

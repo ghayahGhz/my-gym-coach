@@ -56,4 +56,6 @@ Route::middleware(\App\Http\Middleware\HasProfile::class)->group(function () {
     Route::delete('/exercises/{id}',       [HomeController::class, 'removeExercise'])->name('exercises.remove');
     Route::patch('/exercises/{id}/toggle', [HomeController::class, 'toggleDone'])->name('exercises.toggle');
     Route::patch('/exercises/{id}/adjust', [HomeController::class, 'adjustField'])->name('exercises.adjust');
+    Route::post('/exercises/reset-day',    [HomeController::class, 'resetDay'])->name('exercises.reset-day');
+    Route::post('/exercises/plan',         [HomeController::class, 'generatePlan'])->name('exercises.plan');
 });

@@ -243,6 +243,16 @@
 @endforelse
 </div>
 
+{{-- ═══ All Done Banner ═══ --}}
+@php $allDoneNow = $exercises->count() > 0 && $exercises->where('done', true)->count() === $exercises->count(); @endphp
+<div id="all-done-banner" style="display:{{ $allDoneNow ? 'flex' : 'none' }};align-items:center;justify-content:space-between;gap:.75rem;background:linear-gradient(135deg,rgba(226,241,99,.15),rgba(137,108,254,.1));border:1.5px solid rgba(226,241,99,.35);border-radius:18px;padding:1rem 1.15rem;margin-bottom:.85rem;">
+    <div>
+        <div style="font-family:'Poppins',sans-serif;font-weight:700;font-size:1rem;color:var(--lime);">🎉 أنجزت كل التمارين!</div>
+        <div style="font-size:.8rem;color:var(--muted);margin-top:.2rem;">هل تريد البدء من جديد ليوم جديد؟</div>
+    </div>
+    <button onclick="resetDay()" style="padding:.55rem 1rem;background:var(--lime);color:#232323;border:none;border-radius:12px;font-family:'Poppins',sans-serif;font-weight:700;font-size:.85rem;cursor:pointer;white-space:nowrap;">🔄 يوم جديد</button>
+</div>
+
 {{-- ═══ Exercise Library Modal ═══ --}}
 <div id="library-modal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeLibrary()">
     <div class="modal-sheet" onclick="event.stopPropagation()">
@@ -343,7 +353,7 @@
             @endforeach
         </div>
 
-        <button onclick="generatePlan()" class="btn-primary" style="width:100%;padding:.9rem;">✏️ ولّد الخطة</button>
+        <button id="gen-plan-btn" onclick="generatePlan()" class="btn-primary" style="width:100%;padding:.9rem;">✏️ ولّد الخطة</button>
     </div>
 </div>
 
@@ -380,7 +390,6 @@ function endSession() {
     document.getElementById('sess-display').textContent = '00:00:00';
     document.getElementById('sess-btn').textContent = 'ابدأ الحصة';
     document.getElementById('sess-end-btn').style.display = 'none';
-    // Toggle today in calendar
     const today = new Date().toISOString().slice(0,10);
     fetch('/calendar/toggle', {
         method: 'POST',
@@ -434,51 +443,100 @@ function toggleRest() {
 }
 updateRestUI();
 
+// ─── All-Done Banner ─────────────────────────────────────────────────────────
+function checkAllDone() {
+    const cards = document.querySelectorAll('#exercise-list .ex-card');
+    if (cards.length === 0) return;
+    const doneCards = document.querySelectorAll('#exercise-list .ex-card.done-card');
+    const banner = document.getElementById('all-done-banner');
+    if (banner) banner.style.display = (doneCards.length === cards.length) ? 'flex' : 'none';
+}
+
+function resetDay() {
+    fetch('/exercises/reset-day', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-CSRF-TOKEN':CSRF},
+        body: JSON.stringify({day: DAY})
+    }).then(r => r.json()).then(d => {
+        if (d.success) location.reload();
+    });
+}
+
 // ─── Exercise AJAX ───────────────────────────────────────────────────────────
 function adjust(id, field, delta) {
     fetch(`/exercises/${id}/adjust`, {
-        method:'PATCH',
-        headers:{'Content-Type':'application/json','X-CSRF-TOKEN':CSRF},
+        method: 'PATCH',
+        headers: {'Content-Type':'application/json','X-CSRF-TOKEN':CSRF},
         body: JSON.stringify({field, delta})
-    }).then(r=>r.json()).then(d => {
+    }).then(r => r.json()).then(d => {
         document.getElementById(`${field}-${id}`).textContent = d.value;
     });
 }
+
 function toggleDone(id) {
     fetch(`/exercises/${id}/toggle`, {
-        method:'PATCH', headers:{'Content-Type':'application/json','X-CSRF-TOKEN':CSRF}
-    }).then(r=>r.json()).then(d => {
+        method: 'PATCH',
+        headers: {'Content-Type':'application/json','X-CSRF-TOKEN':CSRF}
+    }).then(r => r.json()).then(d => {
         const card = document.getElementById(`ex-${id}`);
         const btn  = document.getElementById(`done-btn-${id}`);
         if (d.done) {
             card.classList.add('done-card');
-            btn.style.cssText += ';border-color:var(--lime);background:var(--lime);color:#232323;';
+            btn.style.borderColor = 'var(--lime)';
+            btn.style.background  = 'var(--lime)';
+            btn.style.color       = '#232323';
         } else {
             card.classList.remove('done-card');
-            btn.style.cssText += ';border-color:rgba(255,255,255,.2);background:transparent;color:var(--muted);';
+            btn.style.borderColor = 'rgba(255,255,255,.2)';
+            btn.style.background  = 'transparent';
+            btn.style.color       = 'var(--muted)';
+        }
+        if (d.allDone) {
+            const banner = document.getElementById('all-done-banner');
+            if (banner) banner.style.display = 'flex';
+        } else {
+            const banner = document.getElementById('all-done-banner');
+            if (banner) banner.style.display = 'none';
         }
     });
 }
+
 function removeExercise(id) {
     if (!confirm('حذف هذا التمرين؟')) return;
     fetch(`/exercises/${id}`, {
-        method:'DELETE', headers:{'X-CSRF-TOKEN':CSRF}
-    }).then(r=>r.json()).then(d => {
+        method: 'DELETE',
+        headers: {'Content-Type':'application/json','X-CSRF-TOKEN':CSRF}
+    })
+    .then(r => {
+        if (!r.ok) throw new Error('فشل الحذف');
+        return r.json();
+    })
+    .then(d => {
         if (d.success) {
             const el = document.getElementById(`ex-${id}`);
-            el.style.cssText += ';opacity:0;transform:translateX(40px);transition:all .3s;';
-            setTimeout(() => el.remove(), 300);
+            el.style.opacity   = '0';
+            el.style.transform = 'translateX(40px)';
+            el.style.transition = 'all .3s';
+            setTimeout(() => { el.remove(); checkAllDone(); }, 300);
         }
-    });
+    })
+    .catch(() => alert('حدث خطأ، يرجى المحاولة مجدداً'));
 }
+
 function addExercise(exerciseId) {
     fetch('/exercises', {
-        method:'POST',
-        headers:{'Content-Type':'application/json','X-CSRF-TOKEN':CSRF},
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-CSRF-TOKEN':CSRF},
         body: JSON.stringify({exercise_id: exerciseId, day: DAY})
-    }).then(r=>r.json()).then(d => {
+    })
+    .then(r => {
+        if (!r.ok) throw new Error('فشل الإضافة');
+        return r.json();
+    })
+    .then(d => {
         if (d.success) { closeLibrary(); location.reload(); }
-    });
+    })
+    .catch(() => alert('حدث خطأ، يرجى المحاولة مجدداً'));
 }
 
 // ─── Library Modal ───────────────────────────────────────────────────────────
@@ -513,9 +571,7 @@ function closePlanModal() { document.getElementById('plan-modal').style.display 
 
 function selectPlan(key, val, btn) {
     planState[key] = val;
-    // Deselect siblings in same group
-    const siblings = btn.parentElement.querySelectorAll('.plan-opt');
-    siblings.forEach(b => {
+    btn.parentElement.querySelectorAll('.plan-opt').forEach(b => {
         b.style.borderColor = 'rgba(255,255,255,.1)';
         b.style.background  = 'transparent';
         b.style.color       = 'var(--txt)';
@@ -530,16 +586,35 @@ function generatePlan() {
         alert('يرجى اختيار الهدف والمستوى والمعدات أولاً');
         return;
     }
-    const labels = {
-        goal:  {muscle:'بناء عضلات',fat:'خسارة وزن',strength:'قوة',fitness:'لياقة عامة'},
-        level: {beginner:'مبتدئ',intermediate:'متوسط',advanced:'متقدم'},
-        equipment: {home:'منزل',gym:'جيم كامل'},
-        system: {ppl:'PPL',bro:'Bro Split',ul:'Upper Lower',hybrid:'Hybrid ULPPL',null:''}
-    };
-    const sysLabel = planState.system ? `\n• النظام: ${labels.system[planState.system]}` : '';
-    alert(`✅ تم إنشاء الخطة!\n\n• الهدف: ${labels.goal[planState.goal]}\n• المستوى: ${labels.level[planState.level]}\n• المعدات: ${labels.equipment[planState.equipment]}${sysLabel}\n\nابدأ بإضافة التمارين المناسبة من مكتبة التمارين.`);
-    closePlanModal();
+
+    const genBtn = document.getElementById('gen-plan-btn');
+    genBtn.disabled = true;
+    genBtn.textContent = '⏳ جاري التوليد...';
+
+    fetch('/exercises/plan', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-CSRF-TOKEN':CSRF},
+        body: JSON.stringify(planState)
+    })
+    .then(r => {
+        if (!r.ok) throw new Error('فشل التوليد');
+        return r.json();
+    })
+    .then(d => {
+        if (d.success) {
+            closePlanModal();
+            location.reload();
+        }
+    })
+    .catch(() => {
+        genBtn.disabled = false;
+        genBtn.textContent = '✏️ ولّد الخطة';
+        alert('حدث خطأ، يرجى المحاولة مجدداً');
+    });
 }
+
+// Check initial state on load
+checkAllDone();
 </script>
 @endpush
 @endsection
