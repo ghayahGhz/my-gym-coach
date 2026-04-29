@@ -179,8 +179,8 @@
                 ▶ فيديو
             </a>
             @endif
-            <button onclick="removeExercise({{ $ue->id }})"
-                style="width:30px;height:30px;border-radius:8px;border:none;background:rgba(255,107,107,.1);color:#ff6b6b;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;">✕</button>
+            <button onclick="removeExercise({{ $ue->id }})" class="del-btn"
+                style="width:30px;height:30px;border-radius:8px;border:none;background:rgba(255,107,107,.1);color:#ff6b6b;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;transition:all .2s;">✕</button>
             <button onclick="toggleDone({{ $ue->id }})" id="done-btn-{{ $ue->id }}"
                 style="width:30px;height:30px;border-radius:50%;border:2px solid {{ $ue->done ? 'var(--lime)' : 'rgba(255,255,255,.2)' }};background:{{ $ue->done ? 'var(--lime)' : 'transparent' }};color:{{ $ue->done ? '#232323' : 'var(--muted)' }};cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;transition:all .2s;margin-top:auto;">✓</button>
         </div>
@@ -254,40 +254,99 @@
 </div>
 
 {{-- ═══ Exercise Library Modal ═══ --}}
+@php $addedIds = $addedExerciseIds ?? []; @endphp
 <div id="library-modal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeLibrary()">
-    <div class="modal-sheet" onclick="event.stopPropagation()">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+    <div class="modal-sheet" onclick="event.stopPropagation()" style="max-height:92vh;display:flex;flex-direction:column;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;flex-shrink:0;">
             <h3 style="margin:0;font-size:1.1rem;">📚 مكتبة التمارين</h3>
             <button onclick="closeLibrary()" style="background:transparent;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
         </div>
-        <input type="text" id="lib-search" class="mgc-input" placeholder="ابحث عن تمرين..." oninput="filterLibrary()" style="margin-bottom:.75rem;">
-        <div style="display:flex;gap:.35rem;overflow-x:auto;padding-bottom:.4rem;margin-bottom:.75rem;" class="no-scrollbar">
+        <input type="text" id="lib-search" class="mgc-input" placeholder="ابحث عن تمرين..." oninput="filterLibrary()" style="margin-bottom:.6rem;flex-shrink:0;">
+        <div style="display:flex;gap:.35rem;overflow-x:auto;padding-bottom:.4rem;margin-bottom:.6rem;flex-shrink:0;" class="no-scrollbar">
             <button class="day-tab active" onclick="setMuscle('all',this)">الكل</button>
             @foreach($allMuscles as $muscle => $muscleAr)
             <button class="day-tab" onclick="setMuscle('{{ $muscle }}',this)">{{ $muscleAr }}</button>
             @endforeach
         </div>
-        <div id="lib-list" style="overflow-y:auto;max-height:55vh;">
+
+        <div id="lib-list" style="overflow-y:auto;flex:1;min-height:0;">
             @foreach($library as $muscle => $exGroup)
             <div class="muscle-group" data-muscle="{{ $muscle }}">
                 <div style="font-size:.72rem;color:var(--accent2);font-weight:700;margin:.5rem 0 .3rem;">
                     {{ \App\Models\Exercise::$muscleLabels[$muscle] ?? $muscle }}
                 </div>
                 @foreach($exGroup as $ex)
+                @php $isAdded = in_array($ex->id, $addedIds); @endphp
                 <div class="lib-item" data-muscle="{{ $ex->muscle }}" data-name="{{ $ex->name }}"
-                    style="display:flex;align-items:center;justify-content:space-between;padding:.55rem .4rem;border-radius:10px;cursor:pointer;transition:background .15s;margin-bottom:.15rem;"
+                    style="display:flex;align-items:center;justify-content:space-between;padding:.6rem .5rem;border-radius:12px;margin-bottom:.2rem;background:{{ $isAdded ? 'rgba(137,108,254,.08)' : 'transparent' }};transition:background .15s;"
                     onmouseover="this.style.background='rgba(255,255,255,.05)'"
-                    onmouseout="this.style.background='transparent'"
-                    onclick="addExercise({{ $ex->id }})">
-                    <div>
-                        <div style="font-weight:600;font-size:.88rem;">{{ $ex->name }}</div>
-                        <div style="font-size:.72rem;color:var(--muted);">{{ $ex->muscle_ar }} · {{ $ex->is_time ? 'ثوانٍ' : 'تكرارات' }}</div>
+                    onmouseout="this.style.background='{{ $isAdded ? 'rgba(137,108,254,.08)' : 'transparent' }}'">
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-weight:600;font-size:.9rem;">{{ $ex->name }}</div>
+                        <div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.2rem;">
+                            <span style="font-size:.68rem;background:rgba(137,108,254,.18);color:var(--accent2);padding:.15rem .45rem;border-radius:20px;">{{ $ex->muscle_ar }}</span>
+                            <span style="font-size:.68rem;background:rgba(226,241,99,.1);color:var(--lime);padding:.15rem .45rem;border-radius:20px;">{{ $ex->is_time ? 'ثوانٍ' : 'مقاومة' }}</span>
+                            @if($ex->is_custom)
+                            <span style="font-size:.68rem;background:rgba(255,107,107,.15);color:#ff6b6b;padding:.15rem .45rem;border-radius:20px;">مخصص</span>
+                            @endif
+                        </div>
                     </div>
-                    <div style="color:var(--accent);font-size:1.3rem;font-weight:700;">+</div>
+                    <button onclick="addExercise({{ $ex->id }}, this)"
+                        style="width:34px;height:34px;border-radius:50%;border:2px solid {{ $isAdded ? 'var(--accent)' : 'rgba(255,255,255,.2)' }};background:{{ $isAdded ? 'rgba(137,108,254,.2)' : 'transparent' }};color:{{ $isAdded ? 'var(--accent)' : 'var(--muted)' }};font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;"
+                        id="lib-btn-{{ $ex->id }}">
+                        {{ $isAdded ? '✓' : '+' }}
+                    </button>
                 </div>
                 @endforeach
             </div>
             @endforeach
+
+            {{-- Custom exercise button + form --}}
+            <div style="margin-top:1rem;border-top:1px solid rgba(255,255,255,.06);padding-top:.85rem;">
+                <button onclick="toggleCustomForm()" id="custom-toggle-btn"
+                    style="width:100%;padding:.8rem;background:transparent;border:2px dashed rgba(137,108,254,.35);border-radius:14px;color:var(--accent2);font-family:'Poppins',sans-serif;font-weight:600;font-size:.88rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;">
+                    ✏️ إضافة تمرين مخصص
+                </button>
+                <div id="custom-form" style="display:none;margin-top:.85rem;">
+                    <p style="font-size:.8rem;font-weight:700;color:var(--accent);margin:0 0 .75rem;">✨ تمرين جديد</p>
+                    <input type="text" id="cf-name" class="mgc-input" placeholder="اسم التمرين *" style="margin-bottom:.5rem;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem;">
+                        <select id="cf-muscle" class="mgc-input" style="appearance:auto;">
+                            <option value="chest">صدر</option>
+                            <option value="back">ظهر</option>
+                            <option value="legs">أرجل</option>
+                            <option value="shoulder">كتف</option>
+                            <option value="abs">بطن</option>
+                            <option value="cardio">كارديو</option>
+                            <option value="stretch">إطالة</option>
+                        </select>
+                        <select id="cf-category" class="mgc-input" style="appearance:auto;">
+                            <option value="strength">مقاومة</option>
+                            <option value="cardio">كارديو</option>
+                            <option value="stretch">إطالة</option>
+                        </select>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:.5rem;">
+                        <div>
+                            <div style="font-size:.68rem;color:var(--muted);margin-bottom:.2rem;text-align:center;">جولات</div>
+                            <input type="number" id="cf-sets" class="mgc-input" value="3" min="1" max="99" style="text-align:center;">
+                        </div>
+                        <div>
+                            <div style="font-size:.68rem;color:var(--muted);margin-bottom:.2rem;text-align:center;">تكرار</div>
+                            <input type="number" id="cf-reps" class="mgc-input" value="10" min="1" max="999" style="text-align:center;">
+                        </div>
+                        <div>
+                            <div style="font-size:.68rem;color:var(--muted);margin-bottom:.2rem;text-align:center;">وزن كجم</div>
+                            <input type="number" id="cf-weight" class="mgc-input" value="0" min="0" max="500" style="text-align:center;">
+                        </div>
+                    </div>
+                    <input type="url" id="cf-youtube" class="mgc-input" placeholder="🎬 رابط فيديو اليوتيوب (اختياري)" style="margin-bottom:.75rem;">
+                    <div style="display:flex;gap:.5rem;">
+                        <button onclick="saveCustomExercise(true)" id="cf-save-add-btn" class="btn-primary" style="flex:2;padding:.75rem;">✓ حفظ وإضافة</button>
+                        <button onclick="saveCustomExercise(false)" id="cf-save-btn" style="flex:1;padding:.75rem;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);border-radius:12px;color:var(--txt);font-family:'Poppins',sans-serif;font-weight:600;cursor:pointer;font-size:.85rem;">حفظ</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -496,40 +555,61 @@ function toggleDone(id) {
     });
 }
 
+const _delPending = {};
 function removeExercise(id) {
-    if (!confirm('حذف هذا التمرين؟')) return;
-    fetch(`/exercises/${id}/remove`, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json','X-CSRF-TOKEN':CSRF}
-    })
-    .then(r => {
-        if (!r.ok) throw new Error(r.status);
-        return r.json();
-    })
-    .then(d => {
-        if (d.success) {
-            const el = document.getElementById(`ex-${id}`);
-            el.style.opacity    = '0';
-            el.style.transform  = 'translateX(40px)';
-            el.style.transition = 'all .3s';
-            setTimeout(() => { el.remove(); checkAllDone(); }, 300);
-        }
-    })
-    .catch(e => alert('خطأ في الحذف: ' + e.message));
+    const btn = document.querySelector(`#ex-${id} .del-btn`);
+    if (_delPending[id]) {
+        // Second click — confirm delete
+        clearTimeout(_delPending[id]);
+        delete _delPending[id];
+        if (btn) { btn.textContent = '✕'; btn.style.background = 'rgba(255,107,107,.1)'; }
+        fetch(`/exercises/${id}/remove`, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json','X-CSRF-TOKEN':CSRF}
+        })
+        .then(r => r.ok ? r.json() : Promise.reject(r.status))
+        .then(d => {
+            if (d.success) {
+                const el = document.getElementById(`ex-${id}`);
+                el.style.opacity    = '0';
+                el.style.transform  = 'translateX(40px)';
+                el.style.transition = 'all .3s';
+                setTimeout(() => { el.remove(); checkAllDone(); }, 300);
+            }
+        })
+        .catch(e => {
+            if (btn) { btn.textContent = '✕'; btn.style.background = 'rgba(255,107,107,.1)'; }
+            alert('خطأ: ' + e);
+        });
+    } else {
+        // First click — ask for confirmation via button color
+        if (btn) { btn.textContent = '؟'; btn.style.background = 'rgba(255,107,107,.35)'; btn.style.color = '#fff'; }
+        _delPending[id] = setTimeout(() => {
+            delete _delPending[id];
+            if (btn) { btn.textContent = '✕'; btn.style.background = 'rgba(255,107,107,.1)'; btn.style.color = '#ff6b6b'; }
+        }, 3000);
+    }
 }
 
-function addExercise(exerciseId) {
+function addExercise(exerciseId, btnEl) {
+    if (btnEl && btnEl.textContent.trim() === '✓') return; // already added
     fetch('/exercises', {
         method: 'POST',
         headers: {'Content-Type':'application/json','X-CSRF-TOKEN':CSRF},
         body: JSON.stringify({exercise_id: exerciseId, day: DAY})
     })
-    .then(r => {
-        if (!r.ok) throw new Error('فشل الإضافة');
-        return r.json();
-    })
+    .then(r => r.ok ? r.json() : Promise.reject(r.status))
     .then(d => {
-        if (d.success) { closeLibrary(); location.reload(); }
+        if (d.success) {
+            if (btnEl) {
+                btnEl.textContent   = '✓';
+                btnEl.style.borderColor = 'var(--accent)';
+                btnEl.style.background  = 'rgba(137,108,254,.2)';
+                btnEl.style.color       = 'var(--accent)';
+            }
+            // Reload after short delay so user sees the ✓
+            setTimeout(() => { closeLibrary(); location.reload(); }, 400);
+        }
     })
     .catch(() => alert('حدث خطأ، يرجى المحاولة مجدداً'));
 }
@@ -555,6 +635,61 @@ function filterLibrary() {
             if (ok) any = true;
         });
         g.style.display = any ? 'block' : 'none';
+    });
+}
+
+// ─── Custom Exercise Form ────────────────────────────────────────────────────
+function toggleCustomForm() {
+    const form = document.getElementById('custom-form');
+    const btn  = document.getElementById('custom-toggle-btn');
+    const open = form.style.display === 'none';
+    form.style.display = open ? 'block' : 'none';
+    btn.style.borderStyle = open ? 'solid' : 'dashed';
+    btn.style.borderColor = open ? 'var(--accent)' : 'rgba(137,108,254,.35)';
+}
+
+function saveCustomExercise(addToDay) {
+    const name = document.getElementById('cf-name').value.trim();
+    if (!name) { document.getElementById('cf-name').focus(); return; }
+
+    const payload = {
+        name,
+        muscle:      document.getElementById('cf-muscle').value,
+        category:    document.getElementById('cf-category').value,
+        sets:        parseInt(document.getElementById('cf-sets').value) || 3,
+        reps:        parseInt(document.getElementById('cf-reps').value) || 10,
+        weight:      parseFloat(document.getElementById('cf-weight').value) || 0,
+        youtube_url: document.getElementById('cf-youtube').value.trim() || null,
+        day:         DAY,
+    };
+
+    const saveBtn    = document.getElementById('cf-save-btn');
+    const saveAddBtn = document.getElementById('cf-save-add-btn');
+    saveBtn.disabled = saveAddBtn.disabled = true;
+
+    fetch('/exercises/custom', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-CSRF-TOKEN':CSRF},
+        body: JSON.stringify(payload)
+    })
+    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(d => {
+        if (d.success) {
+            if (addToDay) {
+                closeLibrary();
+                location.reload();
+            } else {
+                // Just save — reset form and reload library
+                document.getElementById('cf-name').value    = '';
+                document.getElementById('cf-youtube').value = '';
+                saveBtn.disabled = saveAddBtn.disabled = false;
+                location.reload();
+            }
+        }
+    })
+    .catch(e => {
+        saveBtn.disabled = saveAddBtn.disabled = false;
+        alert('خطأ: ' + e);
     });
 }
 

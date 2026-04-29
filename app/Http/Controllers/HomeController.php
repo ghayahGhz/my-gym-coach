@@ -32,8 +32,14 @@ class HomeController extends Controller
         $activeDay = $request->query('day', $days[0] ?? 'sat');
 
         $exercises  = $profile->exercisesForDay($activeDay);
-        $library    = Exercise::orderBy('muscle')->orderBy('name')->get()->groupBy('muscle');
-        $allMuscles = Exercise::distinct()->pluck('muscle_ar', 'muscle');
+
+        $library = Exercise::where(function ($q) use ($profile) {
+            $q->whereNull('user_profile_id')
+              ->orWhere('user_profile_id', $profile->id);
+        })->orderBy('muscle')->orderBy('name')->get()->groupBy('muscle');
+
+        $allMuscles       = Exercise::distinct()->pluck('muscle_ar', 'muscle');
+        $addedExerciseIds = $profile->userExercises()->where('day', $activeDay)->pluck('exercise_id')->toArray();
 
         $weekStart    = Carbon::now()->startOfWeek(Carbon::SATURDAY);
         $weekEnd      = $weekStart->copy()->addDays(6)->endOfDay();
@@ -62,7 +68,8 @@ class HomeController extends Controller
 
         return view('home.index', compact(
             'profile', 'activeDay', 'exercises', 'library', 'allMuscles', 'days',
-            'weekSessions', 'weekTarget', 'quote', 'todayDone', 'todayTotal', 'streak', 'weekDays'
+            'weekSessions', 'weekTarget', 'quote', 'todayDone', 'todayTotal', 'streak', 'weekDays',
+            'addedExerciseIds'
         ));
     }
 
@@ -154,6 +161,51 @@ class HomeController extends Controller
     {
         $request->validate(['day' => 'required|in:sat,sun,mon,tue,wed,thu,fri']);
         $this->profile()->userExercises()->where('day', $request->day)->update(['done' => false]);
+        return response()->json(['success' => true]);
+    }
+
+    public function storeCustomExercise(Request $request)
+    {
+        $request->validate([
+            'name'        => 'required|string|max:100',
+            'muscle'      => 'required|in:chest,back,legs,shoulder,abs,cardio,stretch',
+            'category'    => 'required|in:strength,cardio,stretch',
+            'is_time'     => 'boolean',
+            'youtube_url' => 'nullable|url|max:255',
+            'day'         => 'required|in:sat,sun,mon,tue,wed,thu,fri',
+            'sets'        => 'integer|min:1|max:99',
+            'reps'        => 'integer|min:1|max:999',
+            'weight'      => 'numeric|min:0|max:500',
+        ]);
+
+        $profile  = $this->profile();
+        $muscleAr = Exercise::$muscleLabels[$request->muscle] ?? $request->muscle;
+
+        $ex = Exercise::create([
+            'key'             => 'custom_' . $profile->id . '_' . uniqid(),
+            'name'            => $request->name,
+            'muscle'          => $request->muscle,
+            'muscle_ar'       => $muscleAr,
+            'category'        => $request->category,
+            'is_time'         => $request->boolean('is_time'),
+            'youtube_url'     => $request->youtube_url,
+            'is_custom'       => true,
+            'user_profile_id' => $profile->id,
+        ]);
+
+        $maxOrder = $profile->userExercises()->where('day', $request->day)->max('sort_order') ?? 0;
+
+        $ue = UserExercise::create([
+            'user_profile_id' => $profile->id,
+            'exercise_id'     => $ex->id,
+            'day'             => $request->day,
+            'sets'            => $request->input('sets', 3),
+            'reps'            => $request->input('reps', 10),
+            'weight'          => $request->input('weight', 0),
+            'done'            => false,
+            'sort_order'      => $maxOrder + 1,
+        ]);
+
         return response()->json(['success' => true]);
     }
 

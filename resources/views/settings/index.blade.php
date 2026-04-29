@@ -221,7 +221,7 @@
 
 </div>
 
-<p style="text-align:center;color:var(--muted);font-size:.72rem;margin-top:.5rem;">💎 Sculpt & Burn v2.0 · مدربك لا يملي عليك الشروط</p>
+<p style="text-align:center;color:var(--muted);font-size:.72rem;margin-top:.5rem;">💎 MyGymCoach v2.0 · مدربك لا يملي عليك الشروط</p>
 
 <script>
 // Accordion sections
