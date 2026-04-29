@@ -48,7 +48,7 @@ class CalendarController extends Controller
                     'inMonth' => $cursor->month === $month,
                     'isToday' => $cursor->isToday(),
                     'isDone'  => in_array($cursor->format('Y-m-d'), $doneDatesAll),
-                    'isWorkout' => $profile->isWorkoutDay(strtolower($cursor->shortEnglishDayName === 'Thu' ? 'thu' : mb_strtolower(substr($cursor->englishDayOfWeek, 0, 3)))),
+                    'isWorkout' => $profile->isWorkoutDay(strtolower(substr($cursor->englishDayOfWeek, 0, 3))),
                 ];
                 $cursor->addDay();
             }

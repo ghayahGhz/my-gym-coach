@@ -1,7 +1,7 @@
 /*M!999999\- enable the sandbox mode */ 
 -- MariaDB dump 10.19  Distrib 10.11.16-MariaDB, for Win64 (AMD64)
 --
--- Host: 127.0.0.1    Database: my_gym_coach
+-- Host: localhost    Database: my_gym_coach
 -- ------------------------------------------------------
 -- Server version	10.11.16-MariaDB
 
@@ -124,36 +124,36 @@ CREATE TABLE `exercises` (
 LOCK TABLES `exercises` WRITE;
 /*!40000 ALTER TABLE `exercises` DISABLE KEYS */;
 INSERT INTO `exercises` VALUES
-(1,'bp','بنش برس','chest','صدر','strength',0,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(2,'df','فلاي دمبل','chest','صدر','strength',0,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(3,'pu','تمرين الضغط','chest','صدر','strength',0,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(4,'cf','كابل فلاي','chest','صدر','strength',0,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(5,'lp','لات بول داون','back','ظهر','strength',0,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(6,'crw','كابل رو','back','ظهر','strength',0,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(7,'dl','ديد ليفت','back','ظهر','strength',0,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(8,'puu','عقلة','back','ظهر','strength',0,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(9,'sq','سكوات','legs','أرجل','strength',0,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(10,'lpr','ليج بريس','legs','أرجل','strength',0,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(11,'ht','هيب ثرست','legs','أرجل','strength',0,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(12,'lu','لانج','legs','أرجل','strength',0,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(13,'rdl','رومانيان ديد ليفت','legs','أرجل','strength',0,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(14,'cal','رفع الكعب','legs','أرجل','strength',0,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(15,'sp','ضغط الكتف','shoulder','كتف','strength',0,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(16,'lr','رفع جانبي','shoulder','كتف','strength',0,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(17,'fr','رفع أمامي','shoulder','كتف','strength',0,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(18,'cru','كرنش','abs','بطن','strength',0,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(19,'pl','بلانك','abs','بطن','strength',1,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(20,'rt','روسيان تويست','abs','بطن','strength',0,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(21,'hlr','رفع الأرجل المعلقة','abs','بطن','strength',0,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(22,'bc','بايسيكل كرنش','abs','بطن','strength',0,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(23,'tm','جهاز الجري','cardio','كارديو','cardio',1,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(24,'bh','دراجة HIIT','cardio','كارديو','cardio',1,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(25,'scc','ستير كلايمر','cardio','كارديو','cardio',1,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(26,'el','إليبتيكال','cardio','كارديو','cardio',1,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(27,'ks','تمرين الكيتل بيل','cardio','كارديو','cardio',0,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(28,'bst','إطالة الظهر','stretch','إطالة','stretch',1,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(29,'lst','إطالة الأرجل','stretch','إطالة','stretch',1,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19'),
-(30,'sst','إطالة الكتف','stretch','إطالة','stretch',1,NULL,'2026-04-27 17:56:19','2026-04-27 17:56:19');
+(1,'bp','بنش برس','chest','صدر','strength',0,'https://www.youtube.com/watch?v=vcBig73ojpE','2026-04-29 16:57:57','2026-04-29 17:05:39'),
+(2,'df','فلاي دمبل','chest','صدر','strength',0,'https://www.youtube.com/watch?v=eozdVDA78K0','2026-04-29 16:57:57','2026-04-29 17:05:39'),
+(3,'pu','تمرين الضغط','chest','صدر','strength',0,'https://www.youtube.com/watch?v=IODxDxX7oi4','2026-04-29 16:57:57','2026-04-29 17:05:39'),
+(4,'cf','كابل فلاي','chest','صدر','strength',0,'https://www.youtube.com/watch?v=Iwe6AmxVf7o','2026-04-29 16:57:57','2026-04-29 17:05:39'),
+(5,'lp','لات بول داون','back','ظهر','strength',0,'https://www.youtube.com/watch?v=CAwf7n6Luuc','2026-04-29 16:57:57','2026-04-29 17:05:39'),
+(6,'crw','كابل رو','back','ظهر','strength',0,'https://www.youtube.com/watch?v=GZbfZ033f74','2026-04-29 16:57:57','2026-04-29 17:05:39'),
+(7,'dl','ديد ليفت','back','ظهر','strength',0,'https://www.youtube.com/watch?v=op9kVnSso6Q','2026-04-29 16:57:57','2026-04-29 17:05:39'),
+(8,'puu','عقلة','back','ظهر','strength',0,'https://www.youtube.com/watch?v=eGo4IYlbE5g','2026-04-29 16:57:57','2026-04-29 17:05:39'),
+(9,'sq','سكوات','legs','أرجل','strength',0,'https://www.youtube.com/watch?v=gsNoPYwWXeM','2026-04-29 16:57:57','2026-04-29 17:05:39'),
+(10,'lpr','ليج بريس','legs','أرجل','strength',0,'https://www.youtube.com/watch?v=IZxyjW7MPJQ','2026-04-29 16:57:57','2026-04-29 17:05:39'),
+(11,'ht','هيب ثرست','legs','أرجل','strength',0,'https://www.youtube.com/watch?v=SEdqd1n0cvg','2026-04-29 16:57:57','2026-04-29 17:05:39'),
+(12,'lu','لانج','legs','أرجل','strength',0,'https://www.youtube.com/watch?v=QOVaHwm-Q6U','2026-04-29 16:57:57','2026-04-29 17:05:39'),
+(13,'rdl','رومانيان ديد ليفت','legs','أرجل','strength',0,'https://www.youtube.com/watch?v=JCXUYuzwNrM','2026-04-29 16:57:57','2026-04-29 17:05:39'),
+(14,'cal','رفع الكعب','legs','أرجل','strength',0,'https://www.youtube.com/watch?v=-M4-G8p1fCI','2026-04-29 16:57:57','2026-04-29 17:05:39'),
+(15,'sp','ضغط الكتف','shoulder','كتف','strength',0,'https://www.youtube.com/watch?v=qEwKCR5JCog','2026-04-29 16:57:57','2026-04-29 17:05:39'),
+(16,'lr','رفع جانبي','shoulder','كتف','strength',0,'https://www.youtube.com/watch?v=3VcKaXpzqRo','2026-04-29 16:57:58','2026-04-29 17:05:39'),
+(17,'fr','رفع أمامي','shoulder','كتف','strength',0,'https://www.youtube.com/watch?v=sOoBQukXMFo','2026-04-29 16:57:58','2026-04-29 17:05:39'),
+(18,'cru','كرنش','abs','بطن','strength',0,'https://www.youtube.com/watch?v=Xyd_fa5zoEU','2026-04-29 16:57:58','2026-04-29 17:05:39'),
+(19,'pl','بلانك','abs','بطن','strength',1,'https://www.youtube.com/watch?v=pSHjTRCQxIw','2026-04-29 16:57:58','2026-04-29 17:05:39'),
+(20,'rt','روسيان تويست','abs','بطن','strength',0,'https://www.youtube.com/watch?v=wkD8rjkodUI','2026-04-29 16:57:58','2026-04-29 17:05:39'),
+(21,'hlr','رفع الأرجل المعلقة','abs','بطن','strength',0,'https://www.youtube.com/watch?v=hdng3Nm1x_E','2026-04-29 16:57:58','2026-04-29 17:05:39'),
+(22,'bc','بايسيكل كرنش','abs','بطن','strength',0,'https://www.youtube.com/watch?v=9FGilxCbdz8','2026-04-29 16:57:58','2026-04-29 17:05:39'),
+(23,'tm','جهاز الجري','cardio','كارديو','cardio',1,'https://www.youtube.com/watch?v=kMMbqSCHPEA','2026-04-29 16:57:58','2026-04-29 17:05:39'),
+(24,'bh','دراجة HIIT','cardio','كارديو','cardio',1,'https://www.youtube.com/watch?v=PqjpFWGf_5E','2026-04-29 16:57:58','2026-04-29 17:05:39'),
+(25,'scc','ستير كلايمر','cardio','كارديو','cardio',1,'https://www.youtube.com/watch?v=n1GXCNtMB8o','2026-04-29 16:57:58','2026-04-29 17:05:39'),
+(26,'el','إليبتيكال','cardio','كارديو','cardio',1,'https://www.youtube.com/watch?v=AsDzYuEv6V0','2026-04-29 16:57:58','2026-04-29 17:05:39'),
+(27,'ks','تمرين الكيتل بيل','cardio','كارديو','cardio',0,'https://www.youtube.com/watch?v=sSESeQAir2M','2026-04-29 16:57:58','2026-04-29 17:05:39'),
+(28,'bst','إطالة الظهر','stretch','إطالة','stretch',1,'https://www.youtube.com/watch?v=g8M6oFWX5bU','2026-04-29 16:57:58','2026-04-29 17:05:39'),
+(29,'lst','إطالة الأرجل','stretch','إطالة','stretch',1,'https://www.youtube.com/watch?v=_HDZODHx3TU','2026-04-29 16:57:58','2026-04-29 17:05:39'),
+(30,'sst','إطالة الكتف','stretch','إطالة','stretch',1,'https://www.youtube.com/watch?v=8lDC4Ri9zAQ','2026-04-29 16:57:58','2026-04-29 17:05:39');
 /*!40000 ALTER TABLE `exercises` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -258,7 +258,7 @@ CREATE TABLE `migrations` (
   `migration` varchar(255) NOT NULL,
   `batch` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -268,14 +268,14 @@ CREATE TABLE `migrations` (
 LOCK TABLES `migrations` WRITE;
 /*!40000 ALTER TABLE `migrations` DISABLE KEYS */;
 INSERT INTO `migrations` VALUES
-(1,'0001_01_01_000000_create_users_table',1),
-(2,'0001_01_01_000001_create_cache_table',1),
-(3,'0001_01_01_000002_create_jobs_table',1),
-(4,'2026_04_27_201300_create_exercises_table',1),
-(5,'2026_04_27_201300_create_user_profiles_table',1),
-(6,'2026_04_27_201301_create_done_dates_table',1),
-(7,'2026_04_27_201301_create_user_exercises_table',1),
-(8,'2026_04_29_000001_add_user_id_to_user_profiles',2);
+(9,'0001_01_01_000000_create_users_table',1),
+(10,'0001_01_01_000001_create_cache_table',1),
+(11,'0001_01_01_000002_create_jobs_table',1),
+(12,'2026_04_27_201300_create_exercises_table',1),
+(13,'2026_04_27_201300_create_user_profiles_table',1),
+(14,'2026_04_27_201301_create_done_dates_table',1),
+(15,'2026_04_27_201301_create_user_exercises_table',1),
+(16,'2026_04_29_000001_add_user_id_to_user_profiles',1);
 /*!40000 ALTER TABLE `migrations` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -327,7 +327,7 @@ CREATE TABLE `user_exercises` (
   KEY `user_exercises_exercise_id_foreign` (`exercise_id`),
   CONSTRAINT `user_exercises_exercise_id_foreign` FOREIGN KEY (`exercise_id`) REFERENCES `exercises` (`id`) ON DELETE CASCADE,
   CONSTRAINT `user_exercises_user_profile_id_foreign` FOREIGN KEY (`user_profile_id`) REFERENCES `user_profiles` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -336,10 +336,6 @@ CREATE TABLE `user_exercises` (
 
 LOCK TABLES `user_exercises` WRITE;
 /*!40000 ALTER TABLE `user_exercises` DISABLE KEYS */;
-INSERT INTO `user_exercises` VALUES
-(2,2,22,'thu',3,10,0.0,0,1,'2026-04-27 18:05:42','2026-04-27 18:05:42'),
-(3,7,22,'sat',3,10,0.0,0,1,'2026-04-29 16:38:56','2026-04-29 16:38:56'),
-(4,7,17,'sat',3,10,0.0,0,2,'2026-04-29 16:39:04','2026-04-29 16:39:04');
 /*!40000 ALTER TABLE `user_exercises` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -365,7 +361,7 @@ CREATE TABLE `user_profiles` (
   PRIMARY KEY (`id`),
   KEY `user_profiles_user_id_foreign` (`user_id`),
   CONSTRAINT `user_profiles_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -374,14 +370,6 @@ CREATE TABLE `user_profiles` (
 
 LOCK TABLES `user_profiles` WRITE;
 /*!40000 ALTER TABLE `user_profiles` DISABLE KEYS */;
-INSERT INTO `user_profiles` VALUES
-(1,NULL,'Test User','female',65.0,165.0,90,90,'[\"sat\",\"tue\",\"thu\"]','2026-04-27 18:03:54','2026-04-27 18:03:54'),
-(2,NULL,'غاية','female',50.0,148.0,90,90,'[\"sat\",\"tue\",\"thu\"]','2026-04-27 18:05:10','2026-04-27 18:05:10'),
-(3,NULL,'Test','female',65.0,165.0,90,90,'[\"sat\",\"tue\"]','2026-04-29 16:08:56','2026-04-29 16:08:56'),
-(4,NULL,'غاية','female',50.0,148.0,90,90,'[\"sat\",\"tue\",\"thu\",\"fri\"]','2026-04-29 16:09:26','2026-04-29 16:09:26'),
-(5,3,'غاية','female',55.0,162.0,90,90,'[\"sat\",\"tue\",\"thu\"]','2026-04-29 16:34:34','2026-04-29 16:34:34'),
-(6,1,'غاية','female',50.0,150.0,90,90,'[\"sat\",\"tue\",\"thu\"]','2026-04-29 16:35:06','2026-04-29 16:35:06'),
-(7,4,'test','female',70.0,170.0,60,90,'[\"sat\",\"tue\",\"thu\"]','2026-04-29 16:38:42','2026-04-29 16:38:42');
 /*!40000 ALTER TABLE `user_profiles` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -407,7 +395,7 @@ CREATE TABLE `users` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `users_email_unique` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -416,17 +404,8 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES
-(1,'test','ghayh0000@gmail.com','$2y$12$Y2kaI7VgTOJH6MR9QAglLu8.9Xl534T6P9o.ZBa5WGzcMXAxF8CKC','female',NULL,NULL,90,NULL,NULL,'2026-04-29 16:25:46','2026-04-29 16:25:46'),
-(2,'Ghayah','test2@test.com','$2y$12$aoAdbzoJuOZsX/koNg4AFeuaH6vPGYaqDe9L7pFjM3nq6y..icvei','female',NULL,NULL,90,NULL,NULL,'2026-04-29 16:33:30','2026-04-29 16:33:30'),
-(3,'غاية','test@mygymcoach.com','$2y$12$TZ94fdk3nU1SCywrqvPwju1VX50gKQU1W5qsSWc3klcYNMuCZq7nS','female',NULL,NULL,90,NULL,NULL,'2026-04-29 16:34:34','2026-04-29 16:34:34'),
-(4,'test','ghyah0000@gmail.com','$2y$12$LMu2knYYCECcKEj7ERV2UORWxzYsUtRVNfPg55Q50biuiEeOcEQEK','female',NULL,NULL,90,NULL,NULL,'2026-04-29 16:38:16','2026-04-29 16:38:16');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
-
---
--- Dumping routines for database 'my_gym_coach'
---
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -437,4 +416,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-04-29 22:50:36
+-- Dump completed on 2026-04-29 23:05:57
