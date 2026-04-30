@@ -2,7 +2,7 @@ FROM php:8.4-apache
 
 # Install system dependencies + PHP extensions
 RUN apt-get update && apt-get install -y \
-    git curl zip unzip libpng-dev libonig-dev libxml2-dev libzip-dev libgmp-dev \
+    git curl zip unzip libpng-dev libonig-dev libxml2-dev libzip-dev libgmp-dev ca-certificates \
     && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip gmp \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
