@@ -22,6 +22,9 @@ WORKDIR /var/www/html
 # Copy app
 COPY . .
 
+# Copy Aiven CA certificate
+COPY aiven-ca.crt /etc/ssl/aiven-ca.crt
+
 # Create temp .env so artisan scripts don't fail during build
 RUN cp .env.example .env
 
