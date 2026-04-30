@@ -251,22 +251,90 @@
             margin-bottom: 1rem;
             font-family: 'Poppins', sans-serif;
         }
+
+        /* ── Splash ─────────────────────────────────────────────── */
+        #splash {
+            position: fixed; inset: 0; z-index: 9999;
+            background: #0F0B1E;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 1.25rem;
+            transition: opacity .55s ease, visibility .55s ease;
+        }
+        #splash.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        .spl-ring { position: relative; width: 120px; height: 120px; flex-shrink: 0; }
+        .spl-ring svg { position: absolute; inset: 0; }
+        .spl-fill {
+            fill: none; stroke: var(--accent); stroke-width: 3.5;
+            stroke-linecap: round;
+            stroke-dasharray: 345;
+            stroke-dashoffset: 345;
+            animation: spl-spin 1.1s ease forwards .15s;
+        }
+        @keyframes spl-spin { to { stroke-dashoffset: 0; } }
+        .spl-logo {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .spl-logo img {
+            width: 70px; opacity: 0; transform: scale(.55);
+            animation: spl-pop .5s cubic-bezier(.34,1.56,.64,1) forwards .25s;
+        }
+        @keyframes spl-pop { to { opacity: 1; transform: scale(1); } }
+        .spl-name {
+            font-family: 'Poppins', sans-serif; font-weight: 800;
+            font-size: 1.4rem; color: #fff; letter-spacing: .3px;
+            opacity: 0; animation: spl-up .4s ease forwards .6s;
+        }
+        .spl-name span { color: var(--accent); }
+        .spl-sub {
+            font-size: .8rem; color: var(--muted); margin-top: -.6rem;
+            opacity: 0; animation: spl-up .38s ease forwards .78s;
+        }
+        @keyframes spl-up { to { opacity: 1; } }
+
+        /* Push bell */
+        #push-bell {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: rgba(255,255,255,.07); border: 1.5px solid rgba(255,255,255,.1);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all .2s; color: var(--muted); flex-shrink: 0;
+        }
+        #push-bell.on { background: rgba(137,108,254,.2); border-color: var(--accent); color: var(--accent); }
     </style>
     @stack('head')
 </head>
 <body>
 
+{{-- ═══ Splash Screen ═══ --}}
+<div id="splash">
+    <div class="spl-ring">
+        <svg viewBox="0 0 120 120" width="120" height="120">
+            <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(137,108,254,.12)" stroke-width="3.5"/>
+            <circle cx="60" cy="60" r="54" class="spl-fill" style="transform:rotate(-90deg);transform-origin:60px 60px;"/>
+        </svg>
+        <div class="spl-logo"><img src="{{ asset('images/logo-icon.svg') }}" alt="logo"></div>
+    </div>
+    <div class="spl-name">My<span>Gym</span>Coach</div>
+    <div class="spl-sub">مدربك الرقمي لصحتك 💪</div>
+</div>
+
 {{-- Top Bar --}}
 <div id="top-bar">
     <img src="{{ asset('images/logo-full.svg') }}" alt="MyGymCoach" class="logo-img">
-    @if(isset($profile))
-    <div style="display:flex;align-items:center;gap:.5rem;">
-        <span style="font-size:.85rem;color:var(--muted);">{{ $profile->name }}</span>
+    <div style="display:flex;align-items:center;gap:.6rem;">
+        @if(isset($profile))
+        {{-- Push bell --}}
+        <button id="push-bell" onclick="togglePush()" title="الإشعارات">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+        </button>
         <div style="width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;color:#232323;font-family:'Poppins',sans-serif;">
             {{ mb_substr($profile->name, 0, 1) }}
         </div>
+        @endif
     </div>
-    @endif
 </div>
 
 {{-- Flash Messages --}}
@@ -304,5 +372,94 @@
 @endisset
 
 @stack('scripts')
+
+<script>
+// ── Splash Screen ──────────────────────────────────────────────────────────
+(function () {
+    const splash = document.getElementById('splash');
+    if (!splash) return;
+    // Hide after animations finish (~1.4 s total) + small buffer
+    const hide = () => { splash.classList.add('hidden'); };
+    if (document.readyState === 'complete') {
+        setTimeout(hide, 200);
+    } else {
+        window.addEventListener('load', () => setTimeout(hide, 350));
+        // Fallback: always hide after 2 s even if load is slow
+        setTimeout(hide, 2000);
+    }
+})();
+
+// ── Web Push ───────────────────────────────────────────────────────────────
+const PUSH_KEY = '{{ config("app.vapid_public_key") }}';
+const PUSH_CSRF = document.querySelector('meta[name=csrf-token]')?.content ?? '';
+
+function urlBase64ToUint8(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = window.atob(base64);
+    return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+async function initPush() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    try {
+        const reg = await navigator.serviceWorker.register('/sw.js');
+        const sub = await reg.pushManager.getSubscription();
+        const bell = document.getElementById('push-bell');
+        if (sub && bell) bell.classList.add('on');
+    } catch (_) {}
+}
+
+async function togglePush() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        alert('متصفحك لا يدعم الإشعارات');
+        return;
+    }
+
+    const reg = await navigator.serviceWorker.register('/sw.js');
+    const existing = await reg.pushManager.getSubscription();
+    const bell = document.getElementById('push-bell');
+
+    if (existing) {
+        // Unsubscribe
+        await existing.unsubscribe();
+        await fetch('/push/unsubscribe', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json','X-CSRF-TOKEN': PUSH_CSRF},
+            body: JSON.stringify({ endpoint: existing.endpoint })
+        });
+        if (bell) bell.classList.remove('on');
+    } else {
+        // Subscribe
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') { alert('يرجى السماح بالإشعارات من إعدادات المتصفح'); return; }
+
+        const sub = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8(PUSH_KEY)
+        });
+
+        const json = sub.toJSON();
+        await fetch('/push/subscribe', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json','X-CSRF-TOKEN': PUSH_CSRF},
+            body: JSON.stringify({
+                endpoint: json.endpoint,
+                keys: { p256dh: json.keys.p256dh, auth: json.keys.auth }
+            })
+        });
+
+        if (bell) bell.classList.add('on');
+
+        // Send a welcome test notification
+        await fetch('/push/test', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json','X-CSRF-TOKEN': PUSH_CSRF}
+        });
+    }
+}
+
+initPush();
+</script>
 </body>
 </html>

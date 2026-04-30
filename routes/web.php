@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PushController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\ProgressController;
 use App\Http\Controllers\SettingsController;
@@ -60,4 +61,8 @@ Route::middleware(\App\Http\Middleware\HasProfile::class)->group(function () {
     Route::post('/exercises/{id}/remove',      [HomeController::class, 'removeExercise'])->name('exercises.remove');
     Route::post('/exercises/{id}/toggle',      [HomeController::class, 'toggleDone'])->name('exercises.toggle');
     Route::post('/exercises/{id}/adjust',      [HomeController::class, 'adjustField'])->name('exercises.adjust');
+
+    Route::post('/push/subscribe',   [PushController::class, 'subscribe'])->name('push.subscribe');
+    Route::post('/push/unsubscribe', [PushController::class, 'unsubscribe'])->name('push.unsubscribe');
+    Route::post('/push/test',        [PushController::class, 'sendTest'])->name('push.test');
 });
