@@ -22,8 +22,12 @@ WORKDIR /var/www/html
 # Copy app
 COPY . .
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+# Create temp .env so artisan scripts don't fail during build
+RUN cp .env.example .env
+
+# Install PHP dependencies (skip scripts to avoid artisan calls during build)
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts \
+    && composer dump-autoload --optimize
 
 # Build frontend assets
 RUN npm ci && npm run build
