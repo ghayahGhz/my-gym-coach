@@ -1,9 +1,14 @@
 FROM php:8.2-apache
 
-# Install extensions
+# Install system dependencies + PHP extensions
 RUN apt-get update && apt-get install -y \
-    git curl zip unzip libpng-dev libonig-dev libxml2-dev libzip-dev \
-    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip \
+    git curl zip unzip libpng-dev libonig-dev libxml2-dev libzip-dev libgmp-dev \
+    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip gmp \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js 20
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Enable mod_rewrite
@@ -17,8 +22,11 @@ WORKDIR /var/www/html
 # Copy app
 COPY . .
 
-# Install dependencies (no dev)
+# Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# Build frontend assets
+RUN npm ci && npm run build
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
