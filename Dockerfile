@@ -1,4 +1,4 @@
-FROM php:8.3-apache
+FROM php:8.4-apache
 
 # Install system dependencies + PHP extensions
 RUN apt-get update && apt-get install -y \
@@ -25,9 +25,10 @@ COPY . .
 # Create temp .env so artisan scripts don't fail during build
 RUN cp .env.example .env
 
-# Install PHP dependencies (skip scripts to avoid artisan calls during build)
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts \
-    && composer dump-autoload --optimize
+# Install PHP dependencies
+ENV COMPOSER_MEMORY_LIMIT=-1
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts --ignore-platform-reqs \
+    && composer dump-autoload --optimize --no-scripts
 
 # Build frontend assets
 RUN npm ci && npm run build
