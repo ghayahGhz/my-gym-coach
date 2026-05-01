@@ -61,6 +61,7 @@ Route::middleware(\App\Http\Middleware\HasProfile::class)->group(function () {
     Route::post('/exercises/{id}/remove',      [HomeController::class, 'removeExercise'])->name('exercises.remove');
     Route::post('/exercises/{id}/toggle',      [HomeController::class, 'toggleDone'])->name('exercises.toggle');
     Route::post('/exercises/{id}/adjust',      [HomeController::class, 'adjustField'])->name('exercises.adjust');
+    Route::post('/exercises/{id}/video',       [HomeController::class, 'updateVideo'])->name('exercises.video');
 
     Route::post('/push/subscribe',   [PushController::class, 'subscribe'])->name('push.subscribe');
     Route::post('/push/unsubscribe', [PushController::class, 'unsubscribe'])->name('push.unsubscribe');

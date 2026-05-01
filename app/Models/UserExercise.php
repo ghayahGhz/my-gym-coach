@@ -10,8 +10,9 @@ class UserExercise extends Model
     protected $guarded = [];
 
     protected $casts = [
-        'done'   => 'boolean',
-        'weight' => 'float',
+        'done'    => 'boolean',
+        'weight'  => 'float',
+        'done_at' => 'datetime',
     ];
 
     public function userProfile(): BelongsTo

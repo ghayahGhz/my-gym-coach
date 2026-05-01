@@ -124,7 +124,8 @@ class HomeController extends Controller
         $ue = UserExercise::where('id', $id)
             ->where('user_profile_id', $this->profile()->id)
             ->firstOrFail();
-        $ue->done = ! $ue->done;
+        $ue->done    = ! $ue->done;
+        $ue->done_at = $ue->done ? now() : null;
         $ue->save();
 
         $profile = $this->profile();
@@ -133,8 +134,22 @@ class HomeController extends Controller
 
         return response()->json([
             'done'    => $ue->done,
+            'done_at' => $ue->done_at?->format('d M'),
             'allDone' => $total > 0 && $done === $total,
         ]);
+    }
+
+    public function updateVideo(Request $request, int $id)
+    {
+        $request->validate(['url' => 'nullable|url|max:500']);
+
+        $ue = UserExercise::where('id', $id)
+            ->where('user_profile_id', $this->profile()->id)
+            ->firstOrFail();
+
+        $ue->exercise->update(['youtube_url' => $request->url ?: null]);
+
+        return response()->json(['success' => true, 'url' => $ue->exercise->fresh()->youtube_url]);
     }
 
     public function adjustField(Request $request, int $id)

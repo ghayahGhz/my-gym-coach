@@ -173,12 +173,12 @@
     <div style="display:flex;gap:.6rem;">
         {{-- Left actions --}}
         <div style="display:flex;flex-direction:column;gap:.4rem;align-items:center;padding-top:.2rem;">
-            @if($ue->exercise->youtube_url)
-            <a href="{{ $ue->exercise->youtube_url }}" target="_blank"
-               style="display:flex;align-items:center;gap:.2rem;background:rgba(255,0,0,.15);border:none;border-radius:8px;padding:.28rem .45rem;color:#ff4444;text-decoration:none;font-size:.68rem;font-weight:700;">
+            <a id="vid-link-{{ $ue->id }}" href="{{ $ue->exercise->youtube_url ?? '#' }}" target="_blank"
+               style="display:flex;align-items:center;gap:.2rem;background:rgba(255,0,0,.15);border:none;border-radius:8px;padding:.28rem .45rem;color:#ff4444;text-decoration:none;font-size:.68rem;font-weight:700;{{ $ue->exercise->youtube_url ? '' : 'opacity:.4;pointer-events:none;' }}">
                 ▶ فيديو
             </a>
-            @endif
+            <button onclick="openVideoEdit({{ $ue->id }}, '{{ addslashes($ue->exercise->youtube_url ?? '') }}')"
+               style="width:30px;height:30px;border-radius:8px;border:none;background:rgba(137,108,254,.12);color:var(--accent2);cursor:pointer;font-size:.75rem;display:flex;align-items:center;justify-content:center;" title="تعديل الفيديو">✎</button>
             <button onclick="removeExercise({{ $ue->id }})" class="del-btn"
                 style="width:30px;height:30px;border-radius:8px;border:none;background:rgba(255,107,107,.1);color:#ff6b6b;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;transition:all .2s;">✕</button>
             <button onclick="toggleDone({{ $ue->id }})" id="done-btn-{{ $ue->id }}"
@@ -230,6 +230,10 @@
                         <button class="adj-btn" onclick="adjust({{ $ue->id }}, 'weight', 2.5)">+</button>
                     </div>
                 </div>
+            </div>
+            {{-- Completion date --}}
+            <div id="done-at-{{ $ue->id }}" style="font-size:.65rem;color:var(--lime);margin-top:.45rem;{{ $ue->done_at ? '' : 'display:none;' }}">
+                ✓ أُنجز {{ $ue->done_at?->format('d M') }}
             </div>
         </div>
     </div>
@@ -416,6 +420,21 @@
     </div>
 </div>
 
+{{-- ═══ Video Edit Modal ═══ --}}
+<div id="video-modal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeVideoEdit()">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+            <h3 style="margin:0;font-size:1rem;">🎬 رابط الفيديو</h3>
+            <button onclick="closeVideoEdit()" style="background:transparent;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
+        </div>
+        <input type="url" id="video-url-input" class="mgc-input" placeholder="https://youtube.com/watch?v=..." style="margin-bottom:1rem;">
+        <div style="display:flex;gap:.5rem;">
+            <button onclick="saveVideoUrl()" class="btn-primary" style="flex:2;padding:.75rem;">✓ حفظ</button>
+            <button onclick="clearVideoUrl()" style="flex:1;padding:.75rem;background:rgba(255,107,107,.1);border:1.5px solid rgba(255,107,107,.25);border-radius:12px;color:#ff6b6b;font-family:'Poppins',sans-serif;font-weight:600;cursor:pointer;font-size:.85rem;">حذف</button>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
 const DAY  = '{{ $activeDay }}';
@@ -537,18 +556,21 @@ function toggleDone(id) {
         method: 'POST',
         headers: {'Content-Type':'application/json','X-CSRF-TOKEN':CSRF}
     }).then(r => r.json()).then(d => {
-        const card = document.getElementById(`ex-${id}`);
-        const btn  = document.getElementById(`done-btn-${id}`);
+        const card   = document.getElementById(`ex-${id}`);
+        const btn    = document.getElementById(`done-btn-${id}`);
+        const doneAt = document.getElementById(`done-at-${id}`);
         if (d.done) {
             card.classList.add('done-card');
             btn.style.borderColor = 'var(--lime)';
             btn.style.background  = 'var(--lime)';
             btn.style.color       = '#232323';
+            if (doneAt) { doneAt.textContent = `✓ أُنجز ${d.done_at}`; doneAt.style.display = 'block'; }
         } else {
             card.classList.remove('done-card');
             btn.style.borderColor = 'rgba(255,255,255,.2)';
             btn.style.background  = 'transparent';
             btn.style.color       = 'var(--muted)';
+            if (doneAt) { doneAt.style.display = 'none'; }
         }
         const banner = document.getElementById('all-done-banner');
         if (banner) banner.style.display = d.allDone ? 'flex' : 'none';
@@ -741,6 +763,51 @@ function generatePlan() {
         genBtn.textContent = '✏️ ولّد الخطة';
         alert('حدث خطأ، يرجى المحاولة مجدداً');
     });
+}
+
+// ─── Video Edit ──────────────────────────────────────────────────────────────
+let _videoEditId = null;
+
+function openVideoEdit(id, currentUrl) {
+    _videoEditId = id;
+    document.getElementById('video-url-input').value = currentUrl || '';
+    document.getElementById('video-modal').style.display = 'flex';
+}
+function closeVideoEdit() {
+    document.getElementById('video-modal').style.display = 'none';
+    _videoEditId = null;
+}
+function _applyVideoUrl(url) {
+    const link = document.getElementById(`vid-link-${_videoEditId}`);
+    if (link) {
+        if (url) {
+            link.href = url;
+            link.style.opacity = '1';
+            link.style.pointerEvents = 'auto';
+        } else {
+            link.href = '#';
+            link.style.opacity = '.4';
+            link.style.pointerEvents = 'none';
+        }
+    }
+}
+function saveVideoUrl() {
+    if (!_videoEditId) return;
+    const url = document.getElementById('video-url-input').value.trim();
+    fetch(`/exercises/${_videoEditId}/video`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-CSRF-TOKEN':CSRF},
+        body: JSON.stringify({url: url || null})
+    })
+    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(d => {
+        if (d.success) { _applyVideoUrl(d.url); closeVideoEdit(); }
+    })
+    .catch(() => alert('حدث خطأ، يرجى المحاولة مجدداً'));
+}
+function clearVideoUrl() {
+    document.getElementById('video-url-input').value = '';
+    saveVideoUrl();
 }
 
 // Check initial state on load
