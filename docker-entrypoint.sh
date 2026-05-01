@@ -16,6 +16,9 @@ for i in 1 2 3; do
     sleep 5
 done
 
+# Seed exercises if not already seeded
+php artisan db:seed --class=ExerciseSeeder --force 2>/dev/null || true
+
 # Link storage
 php artisan storage:link 2>/dev/null || true
 
