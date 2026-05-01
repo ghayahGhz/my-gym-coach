@@ -2,8 +2,8 @@ FROM php:8.4-apache
 
 # Install system dependencies + PHP extensions
 RUN apt-get update && apt-get install -y \
-    git curl zip unzip libpng-dev libonig-dev libxml2-dev libzip-dev libgmp-dev ca-certificates \
-    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip gmp \
+    git curl zip unzip libpng-dev libonig-dev libxml2-dev libzip-dev libgmp-dev libpq-dev ca-certificates \
+    && docker-php-ext-install pdo pdo_mysql pdo_pgsql pgsql mbstring exif pcntl bcmath gd zip gmp \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js 20
@@ -22,8 +22,6 @@ WORKDIR /var/www/html
 # Copy app
 COPY . .
 
-# Copy Aiven CA certificate
-COPY aiven-ca.crt /etc/ssl/aiven-ca.crt
 
 # Create temp .env so artisan scripts don't fail during build
 RUN cp .env.example .env
