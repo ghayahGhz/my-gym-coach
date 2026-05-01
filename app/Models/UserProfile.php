@@ -11,9 +11,10 @@ class UserProfile extends Model
     protected $guarded = [];
 
     protected $casts = [
-        'days'   => 'array',
-        'weight' => 'float',
-        'height' => 'float',
+        'days'      => 'array',
+        'day_types' => 'array',
+        'weight'    => 'float',
+        'height'    => 'float',
     ];
 
     public function user(): BelongsTo

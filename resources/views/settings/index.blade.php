@@ -97,7 +97,11 @@
             <span style="color:var(--muted);">‹</span>
         </button>
         <div id="body-days" style="display:none;padding:0 1.15rem 1rem;">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem;">
+            @php
+                $dtLabels  = ['chest'=>'صدر','back'=>'ظهر','legs'=>'أرجل','shoulder'=>'كتف','abs'=>'بطن','push'=>'دفع','pull'=>'سحب','upper'=>'علوي','lower'=>'سفلي','cardio'=>'كارديو','full'=>'كامل'];
+                $savedTypes = $profile->day_types ?? [];
+            @endphp
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-bottom:.85rem;">
                 @foreach(['sat'=>'السبت','sun'=>'الأحد','mon'=>'الاثنين','tue'=>'الثلاثاء','wed'=>'الأربعاء','thu'=>'الخميس','fri'=>'الجمعة'] as $val => $label)
                 <label class="day-check-settings" style="display:flex;align-items:center;gap:.6rem;padding:.6rem .75rem;border-radius:10px;border:1.5px solid {{ in_array($val, $profile->days ?? []) ? 'var(--accent)' : 'rgba(255,255,255,.08)' }};background:{{ in_array($val, $profile->days ?? []) ? 'rgba(137,108,254,.08)' : 'transparent' }};cursor:pointer;transition:all .2s;">
                     <input type="checkbox" name="days_sel[]" value="{{ $val }}" {{ in_array($val, $profile->days ?? []) ? 'checked' : '' }}
@@ -106,6 +110,15 @@
                 </label>
                 @endforeach
             </div>
+
+            {{-- Day types --}}
+            <div id="day-types-section" style="display:none;">
+                <p style="font-size:.75rem;color:var(--accent2);font-weight:700;margin:0 0 .5rem;">🏋️ نوع التمرين لكل يوم</p>
+                <div id="day-types-list" style="display:flex;flex-direction:column;gap:.6rem;"></div>
+            </div>
+
+            {{-- Pass saved types to JS --}}
+            <script id="saved-types-data" type="application/json">@json($savedTypes)</script>
         </div>
     </div>
 
@@ -267,7 +280,6 @@ function updateDayStyle(cb) {
 }
 function syncDays() {
     const checked = [...document.querySelectorAll('input[name="days_sel[]"]:checked')].map(c => c.value);
-    // Remove existing days hidden inputs except the empty placeholder
     document.querySelectorAll('input[name="days[]"]').forEach(i => i.remove());
     const form = document.getElementById('form-info');
     checked.forEach(d => {
@@ -275,7 +287,94 @@ function syncDays() {
         inp.type = 'hidden'; inp.name = 'days[]'; inp.value = d;
         form.appendChild(inp);
     });
+    renderDayTypes(checked);
 }
+
+// Day type names
+const DAY_LABELS = {sat:'السبت',sun:'الأحد',mon:'الاثنين',tue:'الثلاثاء',wed:'الأربعاء',thu:'الخميس',fri:'الجمعة'};
+const TYPE_OPTS  = [
+    {v:'chest',   l:'صدر'},   {v:'back',    l:'ظهر'},
+    {v:'legs',    l:'أرجل'},  {v:'shoulder',l:'كتف'},
+    {v:'abs',     l:'بطن'},   {v:'push',    l:'دفع'},
+    {v:'pull',    l:'سحب'},   {v:'upper',   l:'علوي'},
+    {v:'lower',   l:'سفلي'},  {v:'cardio',  l:'كارديو'},
+    {v:'full',    l:'كامل'},
+];
+const savedTypes = JSON.parse(document.getElementById('saved-types-data')?.textContent || '{}');
+const dayTypeState = Object.assign({}, savedTypes);
+
+function renderDayTypes(checkedDays) {
+    const section = document.getElementById('day-types-section');
+    const list    = document.getElementById('day-types-list');
+    if (!checkedDays.length) { section.style.display = 'none'; return; }
+    section.style.display = 'block';
+    list.innerHTML = '';
+    checkedDays.forEach(day => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;flex-direction:column;gap:.3rem;';
+
+        const title = document.createElement('span');
+        title.style.cssText = 'font-size:.75rem;color:var(--muted);font-weight:600;';
+        title.textContent = DAY_LABELS[day] || day;
+        row.appendChild(title);
+
+        const pills = document.createElement('div');
+        pills.style.cssText = 'display:flex;flex-wrap:wrap;gap:.3rem;';
+
+        // "حر" (no type) option
+        const nonePill = makePill(day, null, 'حر', !dayTypeState[day]);
+        pills.appendChild(nonePill);
+
+        TYPE_OPTS.forEach(opt => {
+            pills.appendChild(makePill(day, opt.v, opt.l, dayTypeState[day] === opt.v));
+        });
+
+        row.appendChild(pills);
+        list.appendChild(row);
+    });
+    syncTypeInputs();
+}
+
+function makePill(day, val, label, active) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = label;
+    btn.dataset.day = day;
+    btn.dataset.val = val || '';
+    btn.style.cssText = 'padding:.25rem .6rem;border-radius:20px;font-size:.72rem;font-weight:700;cursor:pointer;transition:all .15s;border:1.5px solid ' +
+        (active ? 'var(--accent)' : 'rgba(255,255,255,.12)') +
+        ';background:' + (active ? 'rgba(137,108,254,.2)' : 'transparent') +
+        ';color:' + (active ? 'var(--accent)' : 'var(--muted)') + ';font-family:"League Spartan",sans-serif;';
+    btn.onclick = () => selectDayType(day, val, btn);
+    return btn;
+}
+
+function selectDayType(day, val, clickedBtn) {
+    if (val) dayTypeState[day] = val;
+    else     delete dayTypeState[day];
+
+    // Update pill styles in this day's row
+    clickedBtn.closest('div').parentElement.querySelectorAll('button').forEach(b => {
+        const isActive = b === clickedBtn;
+        b.style.borderColor = isActive ? 'var(--accent)' : 'rgba(255,255,255,.12)';
+        b.style.background  = isActive ? 'rgba(137,108,254,.2)' : 'transparent';
+        b.style.color       = isActive ? 'var(--accent)' : 'var(--muted)';
+    });
+    syncTypeInputs();
+}
+
+function syncTypeInputs() {
+    document.querySelectorAll('input[name^="day_types"]').forEach(i => i.remove());
+    const form = document.getElementById('form-info');
+    Object.entries(dayTypeState).forEach(([day, type]) => {
+        const inp = document.createElement('input');
+        inp.type = 'hidden';
+        inp.name = `day_types[${day}]`;
+        inp.value = type;
+        form.appendChild(inp);
+    });
+}
+
 // Init days sync
 syncDays();
 </script>

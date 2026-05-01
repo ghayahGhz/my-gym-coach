@@ -33,7 +33,9 @@
         $dayDoneCount = $profile->userExercises()->where('day', $day)->where('done', true)->count();
         $topMuscle   = $profile->userExercises()->where('day', $day)->with('exercise')
                         ->get()->groupBy('exercise.muscle_ar')->sortByDesc(fn($g) => $g->count())->keys()->first();
-        $dayLabel    = $topMuscle ?? 'حر';
+        $_dtMap      = ['chest'=>'صدر','back'=>'ظهر','legs'=>'أرجل','shoulder'=>'كتف','abs'=>'بطن','push'=>'دفع','pull'=>'سحب','upper'=>'علوي','lower'=>'سفلي','cardio'=>'كارديو','full'=>'كامل'];
+        $dayTypeKey  = ($profile->day_types ?? [])[$day] ?? null;
+        $dayLabel    = ($dayTypeKey ? ($_dtMap[$dayTypeKey] ?? null) : null) ?? $topMuscle ?? 'حر';
         $isDayDone   = $dayExCount > 0 && $dayDoneCount === $dayExCount;
     @endphp
     <a href="{{ route('home', ['day' => $day]) }}"

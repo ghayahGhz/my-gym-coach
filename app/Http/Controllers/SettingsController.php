@@ -31,7 +31,17 @@ class SettingsController extends Controller
             'rest_dur'    => 'required|integer|min:15|max:300',
             'days'        => 'required|array|min:1',
             'days.*'      => 'in:sat,sun,mon,tue,wed,thu,fri',
+            'day_types'   => 'nullable|array',
+            'day_types.*' => 'nullable|in:chest,back,legs,shoulder,abs,push,pull,upper,lower,cardio,full',
         ]);
+
+        // Keep only types for selected days
+        $types = [];
+        foreach ($validated['days'] as $day) {
+            $t = $request->input("day_types.{$day}");
+            if ($t) $types[$day] = $t;
+        }
+        $validated['day_types'] = $types ?: null;
 
         $this->profile()->update($validated);
 

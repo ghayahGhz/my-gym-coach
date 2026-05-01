@@ -300,13 +300,15 @@ class HomeController extends Controller
             $reps  = max(5, $reps - 5);
         }
 
-        $library = Exercise::all()->keyBy('key');
+        $library  = Exercise::all()->keyBy('key');
+        $dayTypes = $profile->day_types ?? [];
 
         // Clear existing exercises for all days
         $profile->userExercises()->delete();
 
         foreach ($days as $index => $day) {
-            $group  = $pattern[$index % count($pattern)];
+            // Use user-assigned day type if set, else fall back to pattern
+            $group  = $dayTypes[$day] ?? $pattern[$index % count($pattern)];
             $keys   = $pool[$group] ?? $pool['upper'];
             $picked = array_slice($keys, 0, $exCount);
 
